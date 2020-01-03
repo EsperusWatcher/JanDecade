@@ -58,16 +58,32 @@ void battleLoop(enum gameState *state)
     battleBackground = LoadTexture("../Textures/Battlefield.png");
 
     // TODO: maybe move it somewhere else??
-    cardList playerCardSet;
+    cardList *playerCardSet;
     initCardSet(&playerCardSet);
-    setPlayerCards_tmp(&playerCardSet); // Testing purposes only
-    
+    setPlayerCards_tmp(&playerCardSet);
+    arrangePlayerCardsOnField(&playerCardSet);
+
+    /*
+    cardList *tmp = playerCardSet->nextCard;
+
+    while(tmp != NULL)
+    {
+        printf("Card # %d\n", tmp->card.number);
+        printf("posX: # %d\n", tmp->card.posX);
+        printf("posY # %d\n", tmp->card.posY);
+        printf("Name: %s\n", tmp->card.name);
+        tmp = tmp->nextCard;        
+    } 
+    */
+
     while (*state == BATTLE)
     {
+        
         BeginDrawing();
 
         DrawTexture(battleBackground, 0, 0, WHITE);
         DrawText("VS", 820, 512, 120, RED);
+        drawPlayerCards(&playerCardSet);
 
         EndDrawing();
         
@@ -78,10 +94,46 @@ void battleLoop(enum gameState *state)
             *state = EXIT;
     }
 
+    emptyCardSet(&playerCardSet);
+    *state = MAP;
 }
 
 // Testing purposes only
-void setPlayerCards_tmp(cardList *playerCardSet)
+void setPlayerCards_tmp(cardList **playerCardSet)
 {
+    // TODO: related to future version: this should be automatic based on stored data
+    addCard(playerCardSet, "../Textures/Archer_1.png", AGILITY, 3, 3, "Alfredo");
+    addCard(playerCardSet, "../Textures/Soldier_1.png", STRENGTH, 5, 6, "Ivan");
+    addCard(playerCardSet, "../Textures/Spearman_1.png", CHARISMA, 4, 4, "Xin Yang");
+    addCard(playerCardSet, "../Textures/Soldier_1.png", STRENGTH, 5, 6, "Ivan");
+    addCard(playerCardSet, "../Textures/Spearman_1.png", CHARISMA, 4, 4, "Xin Yang");
+}
 
+void arrangePlayerCardsOnField(cardList **playerCardSet)
+{
+    // TODO: make this non-constant
+    int curX = 1000;
+    int curY = 850;
+    int step = 140; // Distance between each card
+
+    cardList *tmp = (*playerCardSet)->nextCard;
+
+    while (tmp != NULL)
+    {
+        tmp->card.posX = curX;
+        tmp->card.posY = curY;
+        tmp = tmp->nextCard;
+        curX -= step;
+    }
+}
+
+void drawPlayerCards(cardList **playerCardSet)
+{
+    cardList *tmp = (*playerCardSet)->nextCard;
+
+    while (tmp != NULL)
+    {
+        DrawTexture(tmp->card.cardTexture, tmp->card.posX, tmp->card.posY, WHITE);
+        tmp = tmp->nextCard;
+    }
 }

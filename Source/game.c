@@ -2,14 +2,6 @@
 #include "map.h"
 #include "battle.h"
 
-struct Screen
-{
-	int screenWidth;
-	int screenHeight;
-};
-
-
-
 void initScreen(struct Screen* Screen);
 
 int main()

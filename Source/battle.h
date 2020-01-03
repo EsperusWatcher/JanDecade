@@ -18,8 +18,9 @@ void setBattleGUI();
 // TODO: requires player module to be written 
 void setPlayerCards(); // Should have acces to player block and retrieve info on cards
 
-void setPlayerCards_tmp(); // For testing purposes, WIP
+void setPlayerCards_tmp(cardList **playerCardSet);// For testing purposes, WIP
 
-void drawPlayerCards(cardList *cardSet); // Applies GUI on cards and draws them on battlefield
+void arrangePlayerCardsOnField(cardList **playerCardSet); // set XY coordinates for each card
+void drawPlayerCards(cardList **playerCardSet); // Applies GUI on cards and draws them on battlefield
 
 #endif

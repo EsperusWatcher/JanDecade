@@ -1,82 +1,106 @@
 #include "cards.h"
 
 // TODO: should be consequatively called from load cards to fill deck
-void addCard(cardList *cardSet, char *pathTexture, int curHp, int maxHp, char *name)
+void addCard(cardList **cardSet, char *pathTexture, int dmgType, int curHp, int maxHp, char *name)
 {
     cardList *tmp;
-    tmp = malloc(sizeof(cardList));
+    cardList *last = getLast(cardSet);    
+
+    tmp = (cardList *)malloc(sizeof(cardList));
 
     if (tmp)
     {
         tmp->card.cardTexture = LoadTexture(pathTexture);
+        tmp->card.number = (*cardSet)->card.number + 1;
+        tmp->card.dmgType = dmgType;
         tmp->card.curHp = curHp;
         tmp->card.maxHp = maxHp;
+        tmp->card.name = malloc(strlen(name));
         strcpy(tmp->card.name, name);
 
         tmp->nextCard = NULL;
-        cardSet->nextCard = tmp;
+        last->nextCard = tmp;
     }
     else
         printf("error?\n"); // TODO: error detection (????????)
-    
+}
+
+cardList* getLast(cardList **cardSet)
+{
+    cardList *tmp = (*cardSet);
+    if ((*cardSet)->nextCard != NULL)
+    {
+        while (tmp->nextCard != NULL)
+            tmp = tmp->nextCard;
+    }
+
+    return tmp;
 }
 
 // Card is removed in case its curHp drops below 0
 // It's being founded in list by its number and free'd
-void removeCard(cardList *cardSet, int number)
+void removeCard(cardList **cardSet, int number)
 {
-    cardList *tmp = getCard(cardSet, number - 1);
-
-    if (cardSet->nextCard != NULL) // Current card is not the head of deck
+    cardList *del_tmp = getCard(cardSet, number); // Gets previous node
+    
+    if (del_tmp->nextCard != NULL)
     {
-        cardList *tmp_2 = tmp->nextCard;
-        tmp = tmp_2->nextCard;
+        printf("Deleting %s\n", del_tmp->nextCard->card.name);
+        cardList *save = del_tmp->nextCard->nextCard;
 
-        free(tmp_2->card.name);
-        free(tmp_2);
+        free(del_tmp->nextCard->card.name);
+        free(del_tmp->nextCard);
+
+        del_tmp->nextCard = save;
     }
     else
-        printf("[ERROR] Deleting cards from an empty list!!"); // still no error detection...
+        printf("Deleting unknown element?\n"); // Still no error detection...
 }
 
-cardList* getCard(cardList *cardSet, int number)
+// Called in case card dies and has to be removed from deck (^^^^)
+cardList* getCard(cardList **cardSet, int number)
 {
-    for (int i = 0; i < number && cardSet->nextCard != NULL; i++)
-        cardSet = cardSet->nextCard;
+    cardList *tmp = (*cardSet);
 
-    return cardSet;
+    while (tmp != NULL && tmp->nextCard->card.number != number)
+        tmp = tmp->nextCard;
+
+    return tmp;
 }
 
 // Called once in the beginning of playing session
 // TODO: add consequative load cards call
-void initCardSet(cardList *cardSet)
+void initCardSet(cardList **cardSet)
 {
-    cardSet = malloc(sizeof(cardList));
-    cardSet->nextCard = NULL;
+    (*cardSet) = (cardList *)malloc(sizeof(cardList));
+    (*cardSet)->nextCard = NULL;
+    (*cardSet)->card.number = 0;
+    (*cardSet)->card.name = "root";
 }
 
 // Freeing memory, called in the end of each battle
-void emptyCardSet(cardList *cardSet)
+void emptyCardSet(cardList **cardSet)
 {
-    while(cardSet->nextCard != NULL)
+    while((*cardSet)->nextCard != NULL)
         removeCard(cardSet, 1);
     
-    free(cardSet);
+    printf("freeing root\n");
+    free((*cardSet));
 }
 
 // Game saving?
-void savecardSetFile(cardList *cardSet)
+void savecardSetFile(cardList **cardSet)
 {
     // TODO: open file and save card data in local storage
 }
 
 // Game loading?
-void loadcardSetFile(cardList *cardSet)
+void loadcardSetFile(cardList **cardSet)
 {
     // TODO: open a local data storage (if present) and load card data
 }
 
-void formEnemyDeck(cardList *cardSet)
+void formEnemyDeck(cardList **cardSet)
 {
     //TODO: random enemy cardSet generation
 }
