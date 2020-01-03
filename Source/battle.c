@@ -99,7 +99,7 @@ void battleLoop(enum gameState *state)
 }
 
 // Testing purposes only
-void setPlayerCards_tmp(cardList **playerCardSet)
+void setPlayerCards_tmp(cardList **playerCardSet) 
 {
     // TODO: related to future version: this should be automatic based on stored data
     addCard(playerCardSet, "../Textures/Archer_1.png", AGILITY, 3, 3, "Alfredo");
