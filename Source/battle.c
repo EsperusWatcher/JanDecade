@@ -4,7 +4,6 @@ void battleLoop(enum gameState *state)
 {
     while (*state == BATTLE)
     {
-        printf("WAAAGH!!\n");
         BeginDrawing();
 
         ClearBackground(BLACK);
