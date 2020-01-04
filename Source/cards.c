@@ -1,7 +1,7 @@
 #include "cards.h"
 
 // TODO: should be consequatively called from load cards to fill deck
-void addCard(cardList **cardSet, char *pathTexture, int dmgType, int curHp, int maxHp, char *name)
+void addCard(cardList **cardSet, char *pathTexture, int dmgType, int curHp, int maxHp, int id, char *name)
 {
     cardList *tmp;
     cardList *last = getLast(cardSet);    
@@ -11,7 +11,7 @@ void addCard(cardList **cardSet, char *pathTexture, int dmgType, int curHp, int 
     if (tmp)
     {
         tmp->card.cardTexture = LoadTexture(pathTexture);
-        tmp->card.number = (*cardSet)->card.number + 1;
+        tmp->card.number = id;
         tmp->card.dmgType = dmgType;
         tmp->card.curHp = curHp;
         tmp->card.maxHp = maxHp;
@@ -43,16 +43,24 @@ void removeCard(cardList **cardSet, int number)
 {
     cardList *del_tmp = getCard(cardSet, number); // Gets previous node
     
-    if (del_tmp->nextCard != NULL)
+    if (del_tmp != NULL)
     {
-        printf("Deleting %s\n", del_tmp->nextCard->card.name);
         cardList *save = del_tmp->nextCard->nextCard;
 
-        UnloadTexture(del_tmp->card.cardTexture);
+        UnloadTexture(del_tmp->nextCard->card.cardTexture);
         free(del_tmp->nextCard->card.name);
         free(del_tmp->nextCard);
 
         del_tmp->nextCard = save;
+
+        // Decreasing all id's after certain element was deleted for random picks to work correctly
+        // Kind of lame, so may be TODO later..
+        del_tmp = del_tmp->nextCard;
+        while (del_tmp != NULL)
+        {
+            del_tmp->card.number--;
+            del_tmp = del_tmp->nextCard;
+        }
     }
     else
         printf("Deleting unknown element?\n"); // Still no error detection...
@@ -63,9 +71,13 @@ cardList* getCard(cardList **cardSet, int number)
 {
     cardList *tmp = (*cardSet);
 
-    while (tmp != NULL && tmp->nextCard->card.number != number)
-        tmp = tmp->nextCard;
+    while (tmp->nextCard->card.number != number)
+    {
+        if (tmp == NULL)
+            return NULL;
 
+        tmp = tmp->nextCard;
+    }
     return tmp;
 }
 
@@ -83,7 +95,7 @@ void initCardSet(cardList **cardSet)
 void emptyCardSet(cardList **cardSet)
 {
     while((*cardSet)->nextCard != NULL)
-        removeCard(cardSet, 1);
+        removeCard(cardSet, (*cardSet)->nextCard->card.number);
     
     printf("freeing root\n");
     free((*cardSet));
@@ -110,8 +122,8 @@ void formEnemyDeck(cardList **cardSet)
 // Also testing purposes
 void makeRandomCard(cardList **cardSet)
 {
-    srand(time(NULL));
-    int maxHp = rand() % 3 + 1;
+    static int id = 1;
+    int maxHp = rand() % 7 + 1;
     int curHp = maxHp;
     
     int random = rand() % 3 + 1;
@@ -141,5 +153,10 @@ void makeRandomCard(cardList **cardSet)
     }
 
     printf("ready\n");
-    addCard(cardSet, cardPath, dmgType, curHp, maxHp, "Ghoul");
+    addCard(cardSet, cardPath, dmgType, curHp, maxHp, id, "Ghoul");
+    id++;
+
+    //Hardcode, but id has to be limited to max amount of cards in set or crashes
+    if (id > 3)
+        id = 1;
 }

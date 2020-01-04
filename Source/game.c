@@ -6,6 +6,7 @@ void initScreen(struct Screen* Screen);
 
 int main()
 {
+    srand(time(NULL));
 	struct Screen gameScreen;
 	initScreen(&gameScreen);
 

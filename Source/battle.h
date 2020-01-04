@@ -48,7 +48,8 @@ void arrangePlayerCardsOnField(cardList **playerCardSet); // set XY coordinates 
 void drawPlayerCards(cardList **playerCardSet); // Applies GUI on cards and draws them on battlefield
 void detectCardClick(cardList **playerCardSet);
 void cardWasSelectedPlayer(cardList **playerSelectedCard);
-void resetRound(cardList **playerCardSet);
+void enemyPicksCard(cardList **enemyCardSet);
+void resetRound();
 
 char* getIntToString (int n, char *string);
 

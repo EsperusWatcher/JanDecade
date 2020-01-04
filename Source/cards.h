@@ -23,7 +23,7 @@ struct cardList // Linked list to store current cards
     cardList *nextCard;
 };
 
-void addCard(cardList **cardSet, char *pathTexture, int dmgType, int curHp, int maxHp, char *name);
+void addCard(cardList **cardSet, char *pathTexture, int dmgType, int curHp, int maxHp, int id, char *name);
 void removeCard(cardList **cardSet, int number);
 cardList* getCard(cardList **cardSet, int number);
 cardList* getLast(cardList **cardSet);
