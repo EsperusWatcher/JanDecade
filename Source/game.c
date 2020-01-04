@@ -37,6 +37,6 @@ int main()
 
 void initScreen(struct Screen* Screen)
 {
-	Screen->screenHeight = 1024;
-	Screen->screenWidth = 1640;
+	Screen->screenWidth = 1920;
+	Screen->screenHeight = 1080;
 }

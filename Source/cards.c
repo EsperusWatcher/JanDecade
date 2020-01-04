@@ -104,3 +104,11 @@ void formEnemyDeck(cardList **cardSet)
 {
     //TODO: random enemy cardSet generation
 }
+
+// Should be used for enemy only??
+// Also testing purposes
+void makeRandomCard(cardList **cardSet)
+{
+    struct card randomCard;
+    randomCard.maxHp = rand()
+}

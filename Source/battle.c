@@ -51,9 +51,14 @@
 // ---
 // 8) load GUI over battlefield (includeing cards)
 
+// Global vars to keep track on curently selected card
+int SelectedCardFlag = FALSE; // If card was selected for battle
+struct card* SelectedCardPointer = NULL;
+Vector2 SelectedCardInitialPosition; // Return it to its original place
 
 void battleLoop(enum gameState *state)
 {
+    srand(time(NULL));
     static Texture2D battleBackground;
     battleBackground = LoadTexture("../Textures/Battlefield.png");
 
@@ -63,27 +68,15 @@ void battleLoop(enum gameState *state)
     setPlayerCards_tmp(&playerCardSet);
     arrangePlayerCardsOnField(&playerCardSet);
 
-    /*
-    cardList *tmp = playerCardSet->nextCard;
-
-    while(tmp != NULL)
-    {
-        printf("Card # %d\n", tmp->card.number);
-        printf("posX: # %d\n", tmp->card.posX);
-        printf("posY # %d\n", tmp->card.posY);
-        printf("Name: %s\n", tmp->card.name);
-        tmp = tmp->nextCard;        
-    } 
-    */
-
     while (*state == BATTLE)
     {
-        
         BeginDrawing();
 
         DrawTexture(battleBackground, 0, 0, WHITE);
-        DrawText("VS", 820, 512, 120, RED);
         drawPlayerCards(&playerCardSet);
+
+        if (SelectedCardFlag == TRUE)
+            drawBattleHUD();
 
         EndDrawing();
         
@@ -92,6 +85,16 @@ void battleLoop(enum gameState *state)
         
         if (WindowShouldClose())
             *state = EXIT;
+
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+        {
+            detectCardClick(&playerCardSet);
+
+            if (SelectedCardFlag == TRUE)
+            {
+                detectReadyButtonClick();
+            }
+        }
     }
 
     emptyCardSet(&playerCardSet);
@@ -112,28 +115,128 @@ void setPlayerCards_tmp(cardList **playerCardSet)
 void arrangePlayerCardsOnField(cardList **playerCardSet)
 {
     // TODO: make this non-constant
-    int curX = 1000;
-    int curY = 850;
-    int step = 140; // Distance between each card
+    int curX = PLAYER_CARDS_DRAWING_POSITION_START_X;
+    int curY = PLAYER_CARDS_DRAWING_POSITION_START_Y;
+    int step = PLAYER_CARDS_DRAWING_POSITION_STEP; // Distance between each card
 
-    cardList *tmp = (*playerCardSet)->nextCard;
+    cardList *currCard = (*playerCardSet)->nextCard;
 
-    while (tmp != NULL)
+    while (currCard != NULL)
     {
-        tmp->card.posX = curX;
-        tmp->card.posY = curY;
-        tmp = tmp->nextCard;
+        currCard->card.posX = curX;
+        currCard->card.posY = curY;
+        currCard = currCard->nextCard;
         curX -= step;
     }
 }
 
 void drawPlayerCards(cardList **playerCardSet)
 {
-    cardList *tmp = (*playerCardSet)->nextCard;
+    cardList *currCard = (*playerCardSet)->nextCard;
+    Color hpColor;
 
-    while (tmp != NULL)
+    while (currCard != NULL)
     {
-        DrawTexture(tmp->card.cardTexture, tmp->card.posX, tmp->card.posY, WHITE);
-        tmp = tmp->nextCard;
+        if (currCard->card.curHp < currCard->card.maxHp)
+            hpColor = RED;
+        else
+            hpColor = BLACK;
+
+        DrawTexture(currCard->card.cardTexture, currCard->card.posX, currCard->card.posY, WHITE);
+
+        switch (currCard->card.dmgType)
+        {
+            case AGILITY:
+                DrawText("AGL", currCard->card.posX + 5, currCard->card.posY + 5, 10, BLACK);
+                break;
+            case STRENGTH:
+                DrawText("STR", currCard->card.posX + 5, currCard->card.posY + 5, 10, BLACK);
+                break;
+            case CHARISMA:
+                DrawText("CHA", currCard->card.posX + 5, currCard->card.posY + 5, 10, BLACK);
+                break;
+
+            default: 
+                printf("[ERROR] Mising card info\n"); // errrrrorrrrrr detectiooooooon...
+                break;
+        }
+
+        char hpString[CARD_MAX_HP];
+        DrawText(currCard->card.name, currCard->card.posX + PLAYER_CARD_SIZE_X / 2 - strlen(currCard->card.name) * 3,
+                 currCard->card.posY + PLAYER_CARD_SIZE_Y - 15, 10, BLACK);
+
+        DrawText(getIntToString(currCard->card.curHp, hpString), currCard->card.posX + PLAYER_CARD_SIZE_X - 25,
+                currCard->card.posY + 5, 10, hpColor);
+
+        DrawText(" / ", currCard->card.posX + PLAYER_CARD_SIZE_X - 22, currCard->card.posY + 5, 10, BLACK);
+        
+        DrawText(getIntToString(currCard->card.maxHp, hpString), currCard->card.posX + PLAYER_CARD_SIZE_X - 10,
+            currCard->card.posY + 5, 10, BLACK);
+
+        currCard = currCard->nextCard;
     }
+}
+
+void drawBattleHUD()
+{
+    Vector2 startButtonPos;
+    startButtonPos.x = PLAYER_FIGHTER_CENTERED_X - BUTTON_SIZE_WIDTH / 4;
+    startButtonPos.y = PLAYER_FIGHTER_CENTERED_Y + BUTTON_SIZE_WIDTH * 2 - 60;   
+    DrawRectangle(startButtonPos.x, startButtonPos.y, BUTTON_SIZE_WIDTH, BUTTON_SIZE_HEIGHT, DARKGREEN);
+    
+    DrawText("START", startButtonPos.x + 5, startButtonPos.y + BUTTON_SIZE_HEIGHT / 2 - 15, 30, BLACK);
+}
+
+char* getIntToString (int n, char *string)
+{
+    snprintf( string, CARD_MAX_HP, "%d", n);
+
+    return string;
+}
+
+void detectCardClick(cardList **playerCardSet)
+{
+    cardList *currCard = (*playerCardSet)->nextCard;
+
+    Vector2 mousePos = GetMousePosition();
+
+    while (currCard != NULL)
+    {
+        if ((currCard->card.posX <= mousePos.x) && (mousePos.x <= currCard->card.posX + PLAYER_CARD_SIZE_X))
+            if ((currCard->card.posY <= mousePos.y) && (mousePos.y <= currCard->card.posY + PLAYER_CARD_SIZE_Y))
+            {
+                cardWasSelectedPlayer(&currCard);
+                break;
+            }
+        currCard = currCard->nextCard;
+    }
+}
+
+void detectReadyButtonClick()
+{
+    // makes things happen
+}
+
+// Moves selected card to the center of battlefield
+void cardWasSelectedPlayer(cardList **playerSelectedCard)
+{
+    if (SelectedCardFlag == TRUE) // In case another card was selected, returns previous one on its place
+    {
+        printf("returning %s to its original position\n", SelectedCardPointer->name);
+        SelectedCardPointer->posX = SelectedCardInitialPosition.x;
+        SelectedCardPointer->posY = SelectedCardInitialPosition.y; 
+    }
+
+    printf("Clicked on %s\n", (*playerSelectedCard)->card.name);
+
+    SelectedCardInitialPosition.x = (*playerSelectedCard)->card.posX;
+    SelectedCardInitialPosition.y = (*playerSelectedCard)->card.posY;
+
+    (*playerSelectedCard)->card.posX = PLAYER_FIGHTER_CENTERED_X;
+    (*playerSelectedCard)->card.posY = PLAYER_FIGHTER_CENTERED_Y;
+
+    SelectedCardPointer = &(*playerSelectedCard)->card;
+    printf("Currently selected card: %s\n", SelectedCardPointer->name);
+
+    SelectedCardFlag = TRUE;
 }
