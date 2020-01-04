@@ -48,6 +48,7 @@ void removeCard(cardList **cardSet, int number)
         printf("Deleting %s\n", del_tmp->nextCard->card.name);
         cardList *save = del_tmp->nextCard->nextCard;
 
+        UnloadTexture(del_tmp->card.cardTexture);
         free(del_tmp->nextCard->card.name);
         free(del_tmp->nextCard);
 
@@ -109,12 +110,13 @@ void formEnemyDeck(cardList **cardSet)
 // Also testing purposes
 void makeRandomCard(cardList **cardSet)
 {
+    srand(time(NULL));
     int maxHp = rand() % 3 + 1;
     int curHp = maxHp;
     
     int random = rand() % 3 + 1;
 
-    char *cardPath = "../Textures/Ghoul_";
+    char cardPath[50] = "../Textures/Ghoul_";
     int dmgType = 0;
 
     switch (random)
@@ -137,6 +139,7 @@ void makeRandomCard(cardList **cardSet)
         default:
             printf("[ERROR] Unknown random parameters\n");
     }
-    
+
+    printf("ready\n");
     addCard(cardSet, cardPath, dmgType, curHp, maxHp, "Ghoul");
 }
