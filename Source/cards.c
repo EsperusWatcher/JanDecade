@@ -109,6 +109,34 @@ void formEnemyDeck(cardList **cardSet)
 // Also testing purposes
 void makeRandomCard(cardList **cardSet)
 {
-    struct card randomCard;
-    randomCard.maxHp = rand()
+    int maxHp = rand() % 3 + 1;
+    int curHp = maxHp;
+    
+    int random = rand() % 3 + 1;
+
+    char *cardPath = "../Textures/Ghoul_";
+    int dmgType = 0;
+
+    switch (random)
+    {
+        case 1:
+            strcat(cardPath, "1.png");
+            dmgType = 2;
+            break;
+
+        case 2:
+            strcat(cardPath, "2.png");
+            dmgType = 1;
+            break;
+
+        case 3:
+            strcat(cardPath, "3.png");
+            dmgType = 0;
+            break;
+
+        default:
+            printf("[ERROR] Unknown random parameters\n");
+    }
+    
+    addCard(cardSet, cardPath, dmgType, curHp, maxHp, "Ghoul");
 }

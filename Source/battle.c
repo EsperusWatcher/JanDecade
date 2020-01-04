@@ -64,7 +64,9 @@ void battleLoop(enum gameState *state)
 
     // TODO: maybe move it somewhere else??
     cardList *playerCardSet;
+    cardList *enemyCardSet;
     initCardSet(&playerCardSet);
+    initCardSet(&enemyCardSet);
     setPlayerCards_tmp(&playerCardSet);
     arrangePlayerCardsOnField(&playerCardSet);
 
@@ -97,6 +99,7 @@ void battleLoop(enum gameState *state)
         }
     }
 
+    emptyCardSet(&enemyCardSet);
     emptyCardSet(&playerCardSet);
     *state = MAP;
 }
@@ -185,6 +188,13 @@ void drawBattleHUD()
     DrawRectangle(startButtonPos.x, startButtonPos.y, BUTTON_SIZE_WIDTH, BUTTON_SIZE_HEIGHT, DARKGREEN);
     
     DrawText("START", startButtonPos.x + 5, startButtonPos.y + BUTTON_SIZE_HEIGHT / 2 - 15, 30, BLACK);
+
+    static Texture2D enemyCard;
+    enemyCard = LoadTexture("../Textures/Unknown_enemy.png");
+
+    DrawTexture(enemyCard, PLAYER_FIGHTER_CENTERED_X, PLAYER_FIGHTER_CENTERED_Y - PLAYER_CARD_SIZE_Y * 5, WHITE);
+
+    DrawText("VS", PLAYER_FIGHTER_CENTERED_X - 20, PLAYER_FIGHTER_CENTERED_Y - PLAYER_CARD_SIZE_Y * 2, 75, RED);
 }
 
 char* getIntToString (int n, char *string)
@@ -214,6 +224,7 @@ void detectCardClick(cardList **playerCardSet)
 
 void detectReadyButtonClick()
 {
+    LoadModelAnimations
     // makes things happen
 }
 

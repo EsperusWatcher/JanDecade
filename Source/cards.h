@@ -32,5 +32,6 @@ void emptyCardSet(cardList **cardSet);
 void savecardSetFile(cardList **cardSet);
 void loadcardSetFile(cardList **cardSet);
 void formEnemyDeck(cardList **cardSet);
+void makeRandomCard(cardList **cardSet);
 
 #endif
