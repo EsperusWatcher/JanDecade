@@ -3,4 +3,4 @@ Makefile
 *.o
 *.out
 .vscode
-
+*.log
