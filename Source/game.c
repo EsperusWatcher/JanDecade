@@ -2,18 +2,11 @@
 #include "map.h"
 #include "battle.h"
 
-struct Screen
-{
-	int screenWidth;
-	int screenHeight;
-};
-
-
-
 void initScreen(struct Screen* Screen);
 
 int main()
 {
+    srand(time(NULL));
 	struct Screen gameScreen;
 	initScreen(&gameScreen);
 
@@ -45,6 +38,6 @@ int main()
 
 void initScreen(struct Screen* Screen)
 {
-	Screen->screenHeight = 1024;
-	Screen->screenWidth = 1640;
+	Screen->screenWidth = 1920;
+	Screen->screenHeight = 1080;
 }
