@@ -3,6 +3,8 @@
 
 #include "game.h"
 #include "gamemath.h"
+#include "list.h"
+#include "logger.h"
 
 #define MAX_ROAD_NAME 128
 
@@ -70,12 +72,5 @@ Road processRoad(char *roadname);
 // x, y convert to index on image. Return -1 if pos doesnot exist
 int coordToIndexConvert(int x, int y, int width, int height);
 
-void debugInfoVector2(Vector2 vec, char *additionalText);
-
-void debugInfoInt(int number, char *additionalText);
-
-void debugInfoText(char *additionalText);
-
-void debugStart();
 
 #endif

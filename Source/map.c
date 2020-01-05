@@ -2,14 +2,14 @@
 
 void mapLoop(enum gameState *state)
 {
-    debugStart();
+    //debugStart();
     Map mainmap;
-    PlayerState player;
-    player.model.x = 0;
-    player.model.y = 0;
-    player.model.width = 50;
-    player.model.height = 50;
-
+    PlayerState* player = (PlayerState*)malloc(sizeof(PlayerState));
+    player->model.x = 0;
+    player->model.y = 0;
+    player->model.width = 50;
+    player->model.height = 50;
+    
     mainmap.bg.x = 0;
     mainmap.bg.y = 0;
     mainmap.bg.width = GetScreenWidth();
@@ -21,18 +21,18 @@ void mapLoop(enum gameState *state)
     Road firstRoad = processRoad("Road2");
     SetShapesTexture(mainmap.bgTexture, mainmap.bg);
 
-    startMovement(&player, &firstRoad);
+    startMovement(player, &firstRoad);
 
     while (*state == MAP)
     {
-        updateMovement(&player);
+        updateMovement(player);
 
         BeginDrawing();
 
         ClearBackground(PINK);
         DrawRectangleRec(mainmap.bg, WHITE);
         DrawTexture(mainmap.roads, 0, 0, BLACK);
-        DrawRectangleRec(player.model, RED);
+        DrawRectangleRec(player->model, RED);
         DrawText("MAP", 100, 100, 60, WHITE);
 
         EndDrawing();
@@ -114,9 +114,7 @@ Road processRoad(char *roadname)
 
     while (startpointIndex != endpointIndex)
     {
-        debugInfoVector2(curPos, "CurPos ");
-        debugInfoVector2(prevPos, "PrevPos ");
-        Vector2  topLeft;
+        Vector2 topLeft;
         topLeft.x = curPos.x - 1; // top left in *checkable* square
         topLeft.y = curPos.y - 1; // same
 
@@ -151,7 +149,8 @@ Road processRoad(char *roadname)
                     }
                 }
             }
-            if (flagExitloop == 1) break;
+            if (flagExitloop == 1)
+                break;
         }
 
         if (road.pointCount == 0) // if first time, then allocate memory
@@ -184,36 +183,4 @@ int coordToIndexConvert(int x, int y, int width, int height)
         return -1; // This position doesnot exist
     }
     return result;
-}
-
-void debugInfoVector2(Vector2 vec, char *additionalText)
-{
-    char *filename = "debug.log";
-    FILE *fp = fopen(filename, "a");
-    fprintf(fp, "DEBUG [Vector2] : %s <%f, %f>\n", additionalText, vec.x, vec.y);
-    fclose(fp);
-}
-
-void debugInfoInt(int number, char *additionalText)
-{
-    char *filename = "debug.log";
-    FILE *fp = fopen(filename, "a");
-    fprintf(fp, "DEBUG [int] : %s - %d\n", additionalText, number);
-    fclose(fp);
-}
-
-void debugInfoText(char *additionalText)
-{
-    char *filename = "debug.log";
-    FILE *fp = fopen(filename, "a");
-    fprintf(fp, "DEBUG [Text] : %s\n", additionalText);
-    fclose(fp);
-}
-
-void debugStart()
-{
-    char *filename = "debug.log";
-    FILE *fp = fopen(filename, "a");
-    fprintf(fp, "------------------------ New session ------------------------\n");
-    fclose(fp);
 }
