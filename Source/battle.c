@@ -254,8 +254,8 @@ void arrangePlayerCardsOnField(cardList **playerCardSet)
 
     while (currCard != NULL)
     {
-        currCard->card.posX = curX;
-        currCard->card.posY = curY;
+        currCard->card.pos.x = curX;
+        currCard->card.pos.y = curY;
         currCard = currCard->nextCard;
         curY -= step;
     }
@@ -271,8 +271,8 @@ void arrangeEnemyCardsOnField(cardList **enemyCardSet)
 
     while (currCard != NULL)
     {
-        currCard->card.posX = curX;
-        currCard->card.posY = curY;
+        currCard->card.pos.x = curX;
+        currCard->card.pos.y = curY;
         currCard = currCard->nextCard;
         curY += step;
     }
@@ -298,7 +298,7 @@ void drawEnemyCards(cardList **enemyCardSet, Texture2D hiddenEnemie)
         if (currCard->card.isVisible)
             drawCard(&currCard->card);
         else
-            DrawTexture(hiddenEnemie, currCard->card.posX, currCard->card.posY, WHITE);
+            DrawTexture(currCard->card.cardTexture, currCard->card.pos.x, currCard->card.pos.y, WHITE);
             //drawCard(&currCard->card);
 
         currCard = currCard->nextCard;
@@ -314,8 +314,8 @@ void enemyPicksCard(cardList **enemyCardSet)
     struct card* pickedCard = &getCard(enemyCardSet, choice)->nextCard->card;
     printf("card is acquired, setting up parameters...\n");
     SelectedEnemyCardPointer = pickedCard;
-    SelectedEnemyCardPointer->posX = PLAYER_FIGHTER_CENTERED_X;
-    SelectedEnemyCardPointer->posY = PLAYER_FIGHTER_CENTERED_Y - PLAYER_CARD_SIZE_Y * 5;
+    SelectedEnemyCardPointer->pos.x = PLAYER_FIGHTER_CENTERED_X;
+    SelectedEnemyCardPointer->pos.y = PLAYER_FIGHTER_CENTERED_Y - PLAYER_CARD_SIZE_Y * 5;
 }
 
 void drawCard(struct card *currCard)
@@ -326,20 +326,20 @@ void drawCard(struct card *currCard)
     else
         hpColor = BLACK;
 
-    DrawTexture(currCard->cardTexture, currCard->posX, currCard->posY, WHITE);
+    DrawTexture(currCard->cardTexture, currCard->pos.x, currCard->pos.y, WHITE);
 
     //printf("currCard name is %s, number %d\n", currCard->name, currCard->number);
 
     switch (currCard->dmgType)
     {
         case AGILITY:
-            DrawText("AGL", currCard->posX + 5, currCard->posY + 5, 10, BLACK);
+            DrawText("AGL", currCard->pos.x + 5, currCard->pos.y + 5, 10, BLACK);
             break;
         case STRENGTH:
-            DrawText("STR", currCard->posX + 5, currCard->posY + 5, 10, BLACK);
+            DrawText("STR", currCard->pos.x + 5, currCard->pos.y + 5, 10, BLACK);
             break;
         case CHARISMA:
-            DrawText("CHA", currCard->posX + 5, currCard->posY + 5, 10, BLACK);
+            DrawText("CHA", currCard->pos.x + 5, currCard->pos.y + 5, 10, BLACK);
             break;
 
         default: 
@@ -348,16 +348,16 @@ void drawCard(struct card *currCard)
     }
 
     char hpString[CARD_MAX_HP];
-    DrawText(currCard->name, currCard->posX + PLAYER_CARD_SIZE_X / 2 - strlen(currCard->name) * 3,
-                currCard->posY + PLAYER_CARD_SIZE_Y - 15, 10, BLACK);
+    DrawText(currCard->name, currCard->pos.x + PLAYER_CARD_SIZE_X / 2 - strlen(currCard->name) * 3,
+                currCard->pos.y + PLAYER_CARD_SIZE_Y - 15, 10, BLACK);
 
-    DrawText(getIntToString(currCard->curHp, hpString), currCard->posX + PLAYER_CARD_SIZE_X - 30,
-            currCard->posY + 5, 10, hpColor);
+    DrawText(getIntToString(currCard->curHp, hpString), currCard->pos.x + PLAYER_CARD_SIZE_X - 30,
+            currCard->pos.y + 5, 10, hpColor);
 
-    DrawText(" / ", currCard->posX + PLAYER_CARD_SIZE_X - 22, currCard->posY + 5, 10, BLACK);
+    DrawText(" / ", currCard->pos.x + PLAYER_CARD_SIZE_X - 22, currCard->pos.y + 5, 10, BLACK);
     
-    DrawText(getIntToString(currCard->maxHp, hpString), currCard->posX + PLAYER_CARD_SIZE_X - 10,
-        currCard->posY + 5, 10, BLACK);
+    DrawText(getIntToString(currCard->maxHp, hpString), currCard->pos.x + PLAYER_CARD_SIZE_X - 10,
+        currCard->pos.y + 5, 10, BLACK);
 }
 
 void drawBattleHUD(Vector2 *startButtonPos)
@@ -386,8 +386,8 @@ void detectCardClick(cardList **playerCardSet)
     while (currCard != NULL)
     {
         printf("Checking mouse vs card positions...\n");
-        if ((currCard->card.posX <= mousePos.x) && (mousePos.x <= currCard->card.posX + PLAYER_CARD_SIZE_X))
-            if ((currCard->card.posY <= mousePos.y) && (mousePos.y <= currCard->card.posY + PLAYER_CARD_SIZE_Y))
+        if ((currCard->card.pos.x<= mousePos.x) && (mousePos.x <= currCard->card.pos.x + PLAYER_CARD_SIZE_X))
+            if ((currCard->card.pos.y <= mousePos.y) && (mousePos.y <= currCard->card.pos.y + PLAYER_CARD_SIZE_Y))
             {
                 printf("card found...\n");
                 cardWasSelectedPlayer(&currCard);
@@ -421,17 +421,22 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
     int isFight = TRUE;
     int showResults = FALSE;
     Texture2D EnemyReveal = LoadTexture("../Textures/Unknown_enemy_reveal.png");
-    
+    Texture2D deathAnim = LoadTexture("../Textures/Death_anim.png");
+
     Vector2 animPos;
-    animPos.x = enemyCard->posX;
-    animPos.y = enemyCard->posY;
+    animPos.x = enemyCard->pos.x;
+    animPos.y = enemyCard->pos.y;
 
     Vector2 continueButton;
     continueButton.x = PLAYER_FIGHTER_CENTERED_X - BUTTON_SIZE_WIDTH / 4;
     continueButton.y = PLAYER_FIGHTER_CENTERED_Y + BUTTON_SIZE_WIDTH * 2 - 60;   
 
-    Rectangle frameRec = { 0.0f, 0.0f, (float)EnemyReveal.width / 11, (float)EnemyReveal.height };
+    Rectangle frameRecEnemy = { 0.0f, 0.0f, (float)EnemyReveal.width / 11, (float)EnemyReveal.height };
+    Rectangle frameRecDeath = { 0.0f, 0.0f, (float)deathAnim.width / 4, (float)deathAnim.height };
+
     int currentFrame = 0;
+    int currentFrameDeathAnim = 0; // lame
+    int framesCounterDeath = 0; //EXTRA lame
     int framesCounter = 0;
     int framesSpeed = 7;
 
@@ -449,14 +454,14 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
             if (currentFrame > 10 && showResults == FALSE)
             {
                 animPlayed = TRUE;
-                enemyCard->posY += currentFrame;
-                playerCard->posY -= currentFrame;
+                enemyCard->pos.y += currentFrame;
+                playerCard->pos.y -= currentFrame;
                 
-                if (enemyCard->posY > 1080 || playerCard->posY < 0)
+                if (enemyCard->pos.y > 1080 || playerCard->pos.y < 0)
                     break;
 
                 // Sort of collision detector between us and enemy
-                if (enemyCard->posY + PLAYER_CARD_SIZE_Y >= playerCard->posY)
+                if (enemyCard->pos.y + PLAYER_CARD_SIZE_Y >= playerCard->pos.y)
                 {
                     int savedDamage = playerCard->curHp;
 
@@ -534,17 +539,17 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
                     showResults = TRUE;
 
                     // In current state cards stay collided after fight, this should fix it
-                    enemyCard->posY -= currentFrame; // But it looks like Kostyli though
-                    playerCard->posY += currentFrame;
+                    enemyCard->pos.y -= currentFrame; // But it looks like Kostyli though
+                    playerCard->pos.y += currentFrame;
                 }
             }
 
-            frameRec.x = (float)currentFrame * (float)EnemyReveal.width / 11;
+            frameRecEnemy.x = (float)currentFrame * (float)EnemyReveal.width / 11;
         }
 
         if (!animPlayed)
         {
-            DrawTextureRec(EnemyReveal, frameRec, animPos, WHITE);
+            DrawTextureRec(EnemyReveal, frameRecEnemy, animPos, WHITE);
             drawCard(playerCard);
         }
         else
@@ -555,18 +560,36 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
 
         if (showResults)
         {
-            DrawRectangle(continueButton.x, continueButton.y, BUTTON_SIZE_WIDTH, BUTTON_SIZE_HEIGHT, DARKGREEN);
-            DrawText("CONTINUE", continueButton.x + 5, continueButton.y + BUTTON_SIZE_HEIGHT / 2 - 15, 20, BLACK);
+            if (enemyCard->curHp < 1)
+                DrawTextureRec(deathAnim, frameRecDeath, enemyCard->pos, WHITE);
 
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && detectButtonClick(continueButton))
-                isFight = FALSE;
+            if (playerCard->curHp < 1)
+                DrawTextureRec(deathAnim, frameRecDeath, playerCard->pos, WHITE);
+
+            framesCounterDeath++;
+
+            if (currentFrameDeathAnim > 2)
+            {
+                DrawRectangle(continueButton.x, continueButton.y, BUTTON_SIZE_WIDTH, BUTTON_SIZE_HEIGHT, DARKGREEN);
+                DrawText("CONTINUE", continueButton.x + 5, continueButton.y + BUTTON_SIZE_HEIGHT / 2 - 15, 20, BLACK);
+
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && detectButtonClick(continueButton))
+                    isFight = FALSE;
+            }
+            else if (framesCounterDeath >= (60 / framesSpeed))
+            {
+                framesCounterDeath = 0;
+                currentFrameDeathAnim++;
+                frameRecDeath.x = (float)currentFrameDeathAnim * (float)deathAnim.width / 4;
+            }
+
         }
 
         EndDrawing();
     }
 
-    enemyCard->posX = animPos.x; // Kostyli
-    enemyCard->posY = animPos.y;
+    enemyCard->pos.x = animPos.x; // Kostyli
+    enemyCard->pos.y = animPos.y;
     BattleOn = FALSE;
     UnloadTexture(EnemyReveal);
     BeginDrawing();
@@ -579,17 +602,17 @@ void cardWasSelectedPlayer(cardList **playerSelectedCard)
     if (SelectedCardFlag == TRUE && SelectedCardPointer != NULL)
     {
         printf("remembering initial pos...\n");
-        SelectedCardPointer->posX = SelectedCardInitialPosition.x;
-        SelectedCardPointer->posY = SelectedCardInitialPosition.y; 
+        SelectedCardPointer->pos.x = SelectedCardInitialPosition.x;
+        SelectedCardPointer->pos.y = SelectedCardInitialPosition.y; 
     }
 
     printf("Clicked on %s\n", (*playerSelectedCard)->card.name);
 
-    SelectedCardInitialPosition.x = (*playerSelectedCard)->card.posX;
-    SelectedCardInitialPosition.y = (*playerSelectedCard)->card.posY;
+    SelectedCardInitialPosition.x = (*playerSelectedCard)->card.pos.x;
+    SelectedCardInitialPosition.y = (*playerSelectedCard)->card.pos.y;
 
-    (*playerSelectedCard)->card.posX = PLAYER_FIGHTER_CENTERED_X;
-    (*playerSelectedCard)->card.posY = PLAYER_FIGHTER_CENTERED_Y;
+    (*playerSelectedCard)->card.pos.x = PLAYER_FIGHTER_CENTERED_X;
+    (*playerSelectedCard)->card.pos.y = PLAYER_FIGHTER_CENTERED_Y;
 
     // Pointer to prepared card, used later to do stuff with it
     SelectedCardPointer = &(*playerSelectedCard)->card;

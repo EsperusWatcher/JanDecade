@@ -13,8 +13,7 @@ struct card
     int number; // Numbeer of card in hand
     int curHp; // Also serves as damage
     int maxHp;
-    int posX;
-    int posY;
+    Vector2 pos;
     char *name;
 };
 
