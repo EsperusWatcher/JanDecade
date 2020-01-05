@@ -113,17 +113,12 @@ void loadcardSetFile(cardList **cardSet)
     // TODO: open a local data storage (if present) and load card data
 }
 
-void formEnemyDeck(cardList **cardSet)
-{
-    //TODO: random enemy cardSet generation
-}
-
 // Should be used for enemy only??
 // Also testing purposes
 void makeRandomCard(cardList **cardSet)
 {
     static int id = 1;
-    int maxHp = rand() % 7 + 1;
+    int maxHp = rand() % 10 + 1;
     int curHp = maxHp;
     
     int random = rand() % 3 + 1;
@@ -159,4 +154,20 @@ void makeRandomCard(cardList **cardSet)
     //Hardcode, but id has to be limited to max amount of cards in set or crashes
     if (id > 3)
         id = 1;
+}
+
+void initEnemyRandomDeck(cardList **enemyCardSet, int amount)
+{
+    for (int i = 0; i < amount; i++)
+        makeRandomCard(enemyCardSet);
+
+    cardList *tmp = (*enemyCardSet)->nextCard;
+
+    // We don;t know enemy stats by default
+    // They are being revealed after fight
+    while (tmp != NULL)
+    {
+        tmp->card.isVisible = FALSE;
+        tmp = tmp->nextCard;
+    }
 }

@@ -70,19 +70,20 @@ void battleLoop(enum gameState *state)
     enemyCard = LoadTexture("../Textures/Unknown_enemy.png");
 
     int battleResult = -10;
+    char infoString[STRING_BUFFER];
 
     // TODO: maybe move it somewhere else??
     cardList *playerCardSet;
     cardList *enemyCardSet;
     initCardSet(&playerCardSet);
     initCardSet(&enemyCardSet);
+    
     setPlayerCards_tmp(&playerCardSet);
     arrangePlayerCardsOnField(&playerCardSet);
 
-    makeRandomCard(&enemyCardSet);
-    makeRandomCard(&enemyCardSet);
-    makeRandomCard(&enemyCardSet);
-    totalEnemyCards += 3;
+    initEnemyRandomDeck(&enemyCardSet, 3); // 3 is for testing purposes, should be dynamic
+    arrangeEnemyCardsOnField(&enemyCardSet);
+    totalEnemyCards += 3; // same thing
 
     Vector2 readyButton;
 
@@ -92,6 +93,12 @@ void battleLoop(enum gameState *state)
 
         DrawTexture(battleBackground, 0, 0, WHITE);
         drawPlayerCards(&playerCardSet);
+        drawEnemyCards(&enemyCardSet, enemyCard);
+
+        DrawText("ENEMIES REMAINING: ", PLAYER_FIGHTER_CENTERED_X + PLAYER_CARD_SIZE_X * 5, 
+            PLAYER_FIGHTER_CENTERED_Y + PLAYER_CARD_SIZE_Y * 2 + 75, 30, RED);
+        DrawText(getIntToString(totalEnemyCards, infoString), PLAYER_FIGHTER_CENTERED_X + PLAYER_CARD_SIZE_X * 9 + 30, 
+            PLAYER_FIGHTER_CENTERED_Y + PLAYER_CARD_SIZE_Y * 2 + 75, 30, RED);
 
         if (SelectedCardFlag == TRUE)
         {
@@ -123,6 +130,13 @@ void battleLoop(enum gameState *state)
                 removeCard(&enemyCardSet, SelectedEnemyCardPointer->number);
                 SelectedEnemyCardPointer = NULL;
                 totalEnemyCards -= 1;
+            }
+            else if (SelectedEnemyCardPointer)
+            {
+                if (SelectedEnemyCardPointer->isVisible == FALSE)
+                    SelectedEnemyCardPointer->isVisible = TRUE;
+
+                printf("Enemy number %d should be visible right now\n", SelectedEnemyCardPointer->number);
             }
 
             if (totalPlayerCards == 0 && totalEnemyCards == 0)
@@ -157,6 +171,7 @@ void battleLoop(enum gameState *state)
                 default:
                     printf("not over yet\n");
                     arrangePlayerCardsOnField(&playerCardSet);
+                    arrangeEnemyCardsOnField(&enemyCardSet);
                     break;
             }
         }
@@ -165,7 +180,6 @@ void battleLoop(enum gameState *state)
 
         if (WindowShouldClose())
             *state = EXIT;
-
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
@@ -186,7 +200,6 @@ void battleLoop(enum gameState *state)
     emptyCardSet(&enemyCardSet);
     printf("empty to us\n");
     emptyCardSet(&playerCardSet);
-
 
     UnloadTexture(enemyCard);
     UnloadTexture(battleBackground);
@@ -223,6 +236,23 @@ void arrangePlayerCardsOnField(cardList **playerCardSet)
     }
 }
 
+void arrangeEnemyCardsOnField(cardList **enemyCardSet)
+{
+    int curX = ENEMY_CARDS_DRAWING_POSITION_START_X;
+    int curY = ENEMY_CARDS_DRAWING_POSITION_START_Y;
+    int step = ENEMY_CARDS_DRAWING_POSITION_STEP;
+
+    cardList *currCard = (*enemyCardSet)->nextCard;
+
+    while (currCard != NULL)
+    {
+        currCard->card.posX = curX;
+        currCard->card.posY = curY;
+        currCard = currCard->nextCard;
+        curY += step;
+    }
+}
+
 void drawPlayerCards(cardList **playerCardSet)
 {
     cardList *currCard = (*playerCardSet)->nextCard;
@@ -230,6 +260,23 @@ void drawPlayerCards(cardList **playerCardSet)
     while (currCard != NULL)
     {
         drawCard(&currCard->card);
+        currCard = currCard->nextCard;
+    }
+}
+
+void drawEnemyCards(cardList **enemyCardSet, Texture2D hiddenEnemie)
+{
+    cardList *currCard = (*enemyCardSet)->nextCard;
+
+    while (currCard != NULL)
+    {
+        if (currCard->card.isVisible)
+            drawCard(&currCard->card);
+        else
+            DrawTexture(hiddenEnemie, currCard->card.posX, currCard->card.posY, WHITE);
+            //drawCard(&currCard->card);
+
+
         currCard = currCard->nextCard;
     }
 }
@@ -357,7 +404,7 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
     Rectangle frameRec = { 0.0f, 0.0f, (float)EnemyReveal.width / 11, (float)EnemyReveal.height };
     int currentFrame = 0;
     int framesCounter = 0;
-    int framesSpeed = 10;
+    int framesSpeed = 7;
 
     while (isFight)
     {
@@ -379,6 +426,7 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
                 if (enemyCard->posY > 1080 || playerCard->posY < 0)
                     break;
 
+                // Sort of collision detector between us and enemy
                 if (enemyCard->posY + PLAYER_CARD_SIZE_Y >= playerCard->posY)
                 {
                     int savedDamage = playerCard->curHp;
@@ -485,7 +533,8 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
 // Moves selected card to the center of battlefield
 void cardWasSelectedPlayer(cardList **playerSelectedCard)
 {
-    if (SelectedCardFlag == TRUE && SelectedCardPointer != NULL) // In case another card was selected, returns previous one on its place
+    // Returns previously selected card to init position should a new one be picked
+    if (SelectedCardFlag == TRUE && SelectedCardPointer != NULL)
     {
         printf("remembering initial pos...\n");
         SelectedCardPointer->posX = SelectedCardInitialPosition.x;
@@ -512,4 +561,6 @@ void resetRound()
     SelectedEnemyCardPointer = NULL;
     SelectedCardFlag = FALSE;
     BattleOn = FALSE;
+
+    totalEnemyCards = 0;
 }

@@ -8,6 +8,7 @@ typedef struct cardList cardList;
 struct card
 {
     Texture2D cardTexture;
+    int isVisible; // Used to display enemies if they reveal themselves
     int dmgType;
     int number; // Numbeer of card in hand
     int curHp; // Also serves as damage
@@ -31,7 +32,7 @@ void initCardSet(cardList **cardSet);
 void emptyCardSet(cardList **cardSet);
 void savecardSetFile(cardList **cardSet);
 void loadcardSetFile(cardList **cardSet);
-void formEnemyDeck(cardList **cardSet);
 void makeRandomCard(cardList **cardSet);
+void initEnemyRandomDeck(cardList **enemyCardSet, int amount);
 
 #endif

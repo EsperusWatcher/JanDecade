@@ -14,6 +14,10 @@
 #define PLAYER_CARD_SIZE_X 80
 #define PLAYER_CARD_SIZE_Y 120
 
+#define ENEMY_CARDS_DRAWING_POSITION_START_X 1250
+#define ENEMY_CARDS_DRAWING_POSITION_START_Y 20
+#define ENEMY_CARDS_DRAWING_POSITION_STEP 140
+
 #define CARD_MAX_HP 30
 
 #define BUTTON_SIZE_WIDTH 120
@@ -25,6 +29,8 @@
 #define WIN 1
 #define LOSS -1
 #define DRAW 0
+
+#define STRING_BUFFER 100
 
 #include "game.h"
 #include "cards.h"
@@ -45,7 +51,11 @@ void setPlayerCards(); // Should have acces to player block and retrieve info on
 void setPlayerCards_tmp(cardList **playerCardSet);// For testing purposes, WIP
 
 void arrangePlayerCardsOnField(cardList **playerCardSet); // set XY coordinates for each card
+void arrangeEnemyCardsOnField(cardList **enemyCardSet);
+
 void drawPlayerCards(cardList **playerCardSet); // Applies GUI on cards and draws them on battlefield
+void drawEnemyCards(cardList **enemyCardSet, Texture2D hiddenEnemie);
+
 void detectCardClick(cardList **playerCardSet);
 void cardWasSelectedPlayer(cardList **playerSelectedCard);
 void enemyPicksCard(cardList **enemyCardSet);
