@@ -1,5 +1,7 @@
 #include "map.h"
 
+int curRoadIndex = 0;
+
 void mapLoop(enum gameState *state)
 {
     InitAudioDevice();
@@ -7,7 +9,6 @@ void mapLoop(enum gameState *state)
     Sound bgMusic = LoadSound("../Music/Elevator_music.mp3");
     PlaySound(bgMusic);
 
-    debugStart();
     Map mainmap;
     PlayerState *player = (PlayerState *)malloc(sizeof(PlayerState));
     player->model.x = 0;
@@ -15,6 +16,7 @@ void mapLoop(enum gameState *state)
     player->road = NULL;
     player->model.width = 50;
     player->model.height = 50;
+    player->state = MOVE;
 
     mainmap.bg.x = 0;
     mainmap.bg.y = 0;
@@ -27,39 +29,30 @@ void mapLoop(enum gameState *state)
     List roads, citys;
     roads = loadAllRoads();
 
-    for (int i = 0; i < roads.count; i++)
-    {
-        debugInfoText(((Road *)getNodeByIndex(&roads, i))->name);
-    }
-
     SetShapesTexture(mainmap.bgTexture, mainmap.bg);
-    int curRoadIndex = 0;
 
     while (*state == MAP)
     {
 
         if (player->road != NULL)
         {
-            debugInfoText("Here0");
-            Node *bufa = roads.Head;
-            for (int i = 0; i < roads.count; i++)
-            {
-                debugInfoAdress(((Road *)bufa), "");
-                bufa = bufa->next;
-            }
             updateMovement(player);
-            debugInfoText("Here1");
         }
         else
         {
-            debugInfoText("Here2");
-            startMovement(player, (Road *)getNodeByIndex(&roads, curRoadIndex));
-            curRoadIndex++;
-            if (curRoadIndex > roads.count)
+            if (player->state == MOVE)
             {
-                curRoadIndex = 0;
+                if (curRoadIndex == roads.count)
+                {
+                    curRoadIndex = 0;
+                }
+                startMovement(player, (Road *)getNodeByIndex(&roads, curRoadIndex));
+                curRoadIndex++;
             }
-            debugInfoText("Here3");
+            else if (player->state == STAY)
+            {
+                *state = BATTLE;
+            }
         }
 
         BeginDrawing();
@@ -78,7 +71,16 @@ void mapLoop(enum gameState *state)
         if (IsKeyPressed(KEY_D))
             *state = BATTLE;
     }
+    UnloadTexture(mainmap.bgTexture);
+    UnloadTexture(mainmap.roads);
 
+    free(player);
+    
+    for(int i = 0; i < roads.count; i++)
+    {
+        deleteNode(&roads, 0);
+    }
+    debugInfoText("Exit");
     CloseAudioDevice();
 }
 
@@ -88,15 +90,15 @@ void startMovement(PlayerState *plSt, Road *road)
     plSt->road = road;
     plSt->model.x = road->firstPoint.x;
     plSt->model.y = road->firstPoint.y;
-    debugInfoAdress(road, "start Road ");
+    plSt->state = MOVE;
 }
 
 void updateMovement(PlayerState *plSt)
 {
-    debugInfoAdress(plSt->road, "update Road ");
     if (plSt->road->pointCount == plSt->currentPosInMap)
     {
         plSt->road = NULL;
+        plSt->state = STAY;
     }
     else
     {
@@ -227,7 +229,6 @@ List loadAllRoads()
         if (fscanf(fp, "%s %d %d %d %d %d%c%d", roadnamebuf, &x1buf, &y1buf, &x2buf, &y2buf, &width, &buf, &height) == 8)
         {
             road = (Road *)malloc(sizeof(Road));
-            debugInfoAdress((void *)road, "road adress");
             road->firstPoint.x = x1buf;
             road->firstPoint.y = y1buf;
             road->secondPoint.x = x2buf;
@@ -236,8 +237,6 @@ List loadAllRoads()
             road->name = (char *)malloc(strlen(roadnamebuf) + 1);
             strcpy(road->name, roadnamebuf);
             processRoad(road, road->name, width, height);
-            debugInfoText("\tComplete");
-            debugInfoText(road->name);
             pushBackNode(&roads, (void *)road);
         }
         else

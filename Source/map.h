@@ -8,7 +8,12 @@
 
 #define MAX_ROAD_NAME 128
 
-enum movementStates; // Types of state to move on map
+// Types of state to move on map
+enum movementStates
+{
+    STAY,
+    MOVE
+};
 
 // One road with two end points and array of point to move
 typedef struct Road
@@ -33,6 +38,7 @@ typedef struct City
 typedef struct PlayerState
 {
     int currentPosInMap;
+    enum movementStates state;
     Road *road;
     Rectangle model;   // Model to draw
     Texture2D texture; // Texture for model
