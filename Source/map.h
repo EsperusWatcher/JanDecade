@@ -67,10 +67,11 @@ void updateMovement(PlayerState *plSt);
 void drawPlayer(PlayerState *plSt);
 
 // Take start, end point + convert pixels image as Vector2 path
-Road processRoad(char *roadname);
+void processRoad(Road *road, char *name, int width, int height);
 
 // x, y convert to index on image. Return -1 if pos doesnot exist
 int coordToIndexConvert(int x, int y, int width, int height);
 
+List loadAllRoads();
 
 #endif

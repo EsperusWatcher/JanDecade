@@ -9,35 +9,46 @@ void mapLoop(enum gameState *state)
 
     //debugStart();
     Map mainmap;
-    PlayerState* player = (PlayerState*)malloc(sizeof(PlayerState));
+    PlayerState *player = (PlayerState *)malloc(sizeof(PlayerState));
     player->model.x = 0;
     player->model.y = 0;
     player->model.width = 50;
     player->model.height = 50;
-    
+
     mainmap.bg.x = 0;
     mainmap.bg.y = 0;
     mainmap.bg.width = GetScreenWidth();
     mainmap.bg.height = GetScreenHeight();
 
-    mainmap.bgTexture = LoadTexture("../Textures/Map/map_BG.png");
-    mainmap.roads = LoadTexture("../Textures/Map/map_Road2.png");
+    mainmap.bgTexture = LoadTexture("../Textures/Map/world_map+GUI.png");
+    mainmap.roads = LoadTexture("../Textures/Map/only roads.png");
 
-    Road firstRoad = processRoad("Road2");
+    List roads, citys;
+    roads = loadAllRoads();
+
     SetShapesTexture(mainmap.bgTexture, mainmap.bg);
-
-    startMovement(player, &firstRoad);
+    int curRoadIndex = 0;
 
     while (*state == MAP)
     {
-        updateMovement(player);
+        
+        if (player->road != NULL)
+        {
+            updateMovement(player);
+        }
+        else
+        {
+            startMovement(player, (Road*)getNodeByIndex(&roads, curRoadIndex));
+            curRoadIndex++;
+        }
+        
 
         BeginDrawing();
 
         ClearBackground(PINK);
         DrawRectangleRec(mainmap.bg, WHITE);
         DrawTexture(mainmap.roads, 0, 0, BLACK);
-        DrawRectangleRec(player->model, RED);
+         DrawRectangleRec(player->model, RED);
         DrawText("MAP", 100, 100, 60, WHITE);
 
         EndDrawing();
@@ -62,11 +73,18 @@ void startMovement(PlayerState *plSt, Road *road)
 
 void updateMovement(PlayerState *plSt)
 {
-    plSt->currentPosInMap++;
-    int halfOfSizeX = plSt->model.width / 2;
-    int halfOfSizeY = plSt->model.height / 2;
-    plSt->model.x = plSt->road->points[plSt->currentPosInMap].x - halfOfSizeX;
-    plSt->model.y = plSt->road->points[plSt->currentPosInMap].y - halfOfSizeY;
+    if (plSt->road->pointCount == plSt->currentPosInMap)
+    {
+        plSt->road = NULL;
+    }
+    else
+    {
+        plSt->currentPosInMap++;
+        int halfOfSizeX = plSt->model.width / 2;
+        int halfOfSizeY = plSt->model.height / 2;
+        plSt->model.x = plSt->road->points[plSt->currentPosInMap].x - halfOfSizeX;
+        plSt->model.y = plSt->road->points[plSt->currentPosInMap].y - halfOfSizeY;
+    }
 }
 
 void drawPlayer(PlayerState *plSt)
@@ -74,48 +92,26 @@ void drawPlayer(PlayerState *plSt)
     //DrawRectanglePro(plSt->model, plSt->pos, 0.0f, RED);
 }
 
-Road processRoad(char *roadname)
+void processRoad(Road *road, char *name, int width, int height)
 {
-    Road road;
-    road.name = (char *)malloc(strlen(roadname) * sizeof(char));
+    char *path = "../Textures/Map/";
+    char *png = ".png";
+    char *result = (char *)malloc((strlen(path) + strlen(png) + strlen(name) * sizeof(char)));
+    result[0] = '\0';
+    strcat(result, path);
+    strcat(result, name);
+    strcat(result, png);
 
-    strcpy(road.name, roadname);
-    FILE *fp = fopen("roads.data", "r");
-    if (fp == NULL)
-    {
-        printf("Cannot open file roads.data\n");
-        return road;
-    }
-
-    char roadnamebuf[MAX_ROAD_NAME] = "";
-    char buf;
-    int x1buf, x2buf, y1buf, y2buf, width, height;
-
-    while (!feof(fp))
-    {
-        fscanf(fp, "%s %d %d %d %d %d%c%d", roadnamebuf, &x1buf, &y1buf, &x2buf, &y2buf, &width, &buf, &height);
-
-        if (strcmp(roadname, roadnamebuf) == 0)
-        {
-            road.firstPoint.x = x1buf;
-            road.firstPoint.y = y1buf;
-            road.secondPoint.x = x2buf;
-            road.secondPoint.y = y2buf;
-            road.pointCount = 0;
-            break;
-        }
-    }
-    fclose(fp);
-
-    Image Roads = LoadImage("../Textures/Map/Road2.png");
+    Image Roads = LoadImage(result);
     Color *RoadsPixels = GetImageData(Roads);
+    free(result);
     UnloadImage(Roads);
 
-    int startpointIndex = coordToIndexConvert(road.firstPoint.x, road.firstPoint.y, width, height);
-    int endpointIndex = coordToIndexConvert(road.secondPoint.x, road.secondPoint.y, width, height);
+    int startpointIndex = coordToIndexConvert(road->firstPoint.x, road->firstPoint.y, width, height);
+    int endpointIndex = coordToIndexConvert(road->secondPoint.x, road->secondPoint.y, width, height);
     Vector2 curPos, prevPos;
-    curPos.x = road.firstPoint.x;
-    curPos.y = road.firstPoint.y;
+    curPos.x = road->firstPoint.x;
+    curPos.y = road->firstPoint.y;
     prevPos.x = curPos.x;
     prevPos.y = curPos.y;
 
@@ -160,20 +156,19 @@ Road processRoad(char *roadname)
                 break;
         }
 
-        if (road.pointCount == 0) // if first time, then allocate memory
+        if (road->pointCount == 0) // if first time, then allocate memory
         {
-            road.points = (Vector2 *)malloc(sizeof(Vector2));
-            road.points[0] = curPos;
-            road.pointCount++;
+            road->points = (Vector2 *)malloc(sizeof(Vector2));
+            road->points[0] = curPos;
+            road->pointCount++;
         }
         else // else re-allocate memory
         {
-            road.points = realloc(road.points, sizeof(Vector2) * (road.pointCount + 1));
-            road.points[road.pointCount] = curPos;
-            road.pointCount++;
+            road->points = realloc(road->points, sizeof(Vector2) * (road->pointCount + 1));
+            road->points[road->pointCount] = curPos;
+            road->pointCount++;
         }
     }
-    return road;
 }
 
 int coordToIndexConvert(int x, int y, int width, int height)
@@ -190,4 +185,36 @@ int coordToIndexConvert(int x, int y, int width, int height)
         return -1; // This position doesnot exist
     }
     return result;
+}
+
+List loadAllRoads()
+{
+    List roads = createList();
+    FILE *fp = fopen("roads.data", "r");
+    if (fp == NULL)
+    {
+        printf("Cannot open file roads.data\n");
+    }
+
+    char roadnamebuf[MAX_ROAD_NAME] = "";
+    char buf;
+    int x1buf, x2buf, y1buf, y2buf, width, height;
+    Road *road;
+
+    while (!feof(fp))
+    {
+        fscanf(fp, "%s %d %d %d %d %d%c%d", roadnamebuf, &x1buf, &y1buf, &x2buf, &y2buf, &width, &buf, &height);
+        road = (Road *)malloc(sizeof(Road));
+        road->firstPoint.x = x1buf;
+        road->firstPoint.y = y1buf;
+        road->secondPoint.x = x2buf;
+        road->secondPoint.y = y2buf;
+        road->pointCount = 0;
+        road->name = (char *)malloc(strlen(roadnamebuf) * sizeof(char));
+        strcpy(road->name, roadnamebuf);
+        processRoad(road, road->name, width, height);
+        pushBackNode(&roads, (void *)road);
+    }
+    fclose(fp);
+    return roads;
 }

@@ -6,3 +6,5 @@ Makefile
 *.log
 Build/
 *.bat
+*.psd
+*.ai
