@@ -11,6 +11,11 @@
 #define TRUE 1
 #define FALSE 0
 
+// aka rock paper scissors
+#define STRENGTH 0
+#define CHARISMA 1
+#define AGILITY 2
+
 struct Screen
 {
 	int screenWidth;

@@ -1,6 +1,7 @@
 #include "game.h"
 #include "map.h"
 #include "battle.h"
+#include "player.h"
 
 void initScreen(struct Screen* Screen);
 
@@ -14,6 +15,9 @@ int main()
 
 	InitWindow(gameScreen.screenWidth, gameScreen.screenHeight, "JanDecade");
 	SetTargetFPS(60);
+	
+	PlayerCaravan player;
+	initPlayer(&player);
 
 	while(!WindowShouldClose() && gameState != EXIT) // mainloop
 	{
@@ -24,7 +28,7 @@ int main()
 				break;
 			
 			case BATTLE:
-				battleLoop(&gameState);
+				battleLoop(&gameState, &player);
 				break; 
 			default:
 				break;

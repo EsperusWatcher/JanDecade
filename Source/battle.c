@@ -62,7 +62,7 @@ Vector2 SelectedCardInitialPosition; // Return it to its original place
 int totalPlayerCards = 0;
 int totalEnemyCards = 0;
 
-void battleLoop(enum gameState *state)
+void battleLoop(enum gameState *state, PlayerCaravan *player)
 {
     static Texture2D battleBackground;
     battleBackground = LoadTexture("../Textures/Battlefield.png");
@@ -73,16 +73,16 @@ void battleLoop(enum gameState *state)
     char infoString[STRING_BUFFER];
 
     // TODO: maybe move it somewhere else??
-    cardList *playerCardSet;
+    cardList *playerCardSet = player->deckList;
     cardList *enemyCardSet;
-    initCardSet(&playerCardSet);
     initCardSet(&enemyCardSet);
     
-    setPlayerCards_tmp(&playerCardSet);
     arrangePlayerCardsOnField(&playerCardSet);
 
     initEnemyRandomDeck(&enemyCardSet, 3); // 3 is for testing purposes, should be dynamic
     arrangeEnemyCardsOnField(&enemyCardSet);
+
+    totalPlayerCards = player->deckSize;
     totalEnemyCards += 3; // same thing
 
     Vector2 readyButton;
@@ -122,6 +122,7 @@ void battleLoop(enum gameState *state)
                 removeCard(&playerCardSet, SelectedCardPointer->number);
                 SelectedCardPointer = NULL;
                 totalPlayerCards -= 1;
+                player->deckSize--;
             }
 
             if (SelectedEnemyCardPointer->curHp < 1)
@@ -159,6 +160,7 @@ void battleLoop(enum gameState *state)
             {
                 arrangePlayerCardsOnField(&playerCardSet);
                 arrangeEnemyCardsOnField(&enemyCardSet);
+                SelectedCardFlag = FALSE;
             }
             else
                 endingScreen(readyButton, battleResult);
@@ -168,6 +170,9 @@ void battleLoop(enum gameState *state)
 
         if (WindowShouldClose())
             *state = EXIT;
+
+        if (IsMouseButtonPressed(KEY_D))
+            *state = MAP;
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
@@ -231,16 +236,6 @@ void endingScreen(Vector2 continueButton, int battleResult)
     }
 
     BeginDrawing();
-}
-
-// Testing purposes only
-void setPlayerCards_tmp(cardList **playerCardSet) 
-{
-    // TODO: related to future version: this should be automatic based on stored data
-    addCard(playerCardSet, "../Textures/Archer_1.png", AGILITY, 3, 3, 1, "Alfredo");
-    addCard(playerCardSet, "../Textures/Soldier_1.png", STRENGTH, 6, 6, 2, "Ivan");
-    addCard(playerCardSet, "../Textures/Spearman_1.png", CHARISMA, 4, 4, 3, "Xin Yang");
-    totalPlayerCards += 3;
 }
 
 void arrangePlayerCardsOnField(cardList **playerCardSet)

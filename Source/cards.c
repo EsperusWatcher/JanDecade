@@ -4,25 +4,38 @@
 void addCard(cardList **cardSet, char *pathTexture, int dmgType, int curHp, int maxHp, int id, char *name)
 {
     cardList *tmp;
+    printf("1\n");
+
     cardList *last = getLast(cardSet);    
+    printf("2\n");
 
     tmp = (cardList *)malloc(sizeof(cardList));
+    printf("3\n");
+    
 
     if (tmp)
     {
+        printf("4\n");
         tmp->card.cardTexture = LoadTexture(pathTexture);
+        printf("5\n");
         tmp->card.number = id;
         tmp->card.dmgType = dmgType;
         tmp->card.curHp = curHp;
         tmp->card.maxHp = maxHp;
+        printf("6\n");
         tmp->card.name = malloc(strlen(name));
+        printf("7\n");
+
         strcpy(tmp->card.name, name);
+        printf("8\n");
 
         tmp->nextCard = NULL;
         last->nextCard = tmp;
     }
     else
         printf("error?\n"); // TODO: error detection (????????)
+
+    printf("added\n");
 }
 
 cardList* getLast(cardList **cardSet)
