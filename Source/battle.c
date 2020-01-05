@@ -135,8 +135,6 @@ void battleLoop(enum gameState *state)
             {
                 if (SelectedEnemyCardPointer->isVisible == FALSE)
                     SelectedEnemyCardPointer->isVisible = TRUE;
-
-                printf("Enemy number %d should be visible right now\n", SelectedEnemyCardPointer->number);
             }
 
             if (totalPlayerCards == 0 && totalEnemyCards == 0)
@@ -154,26 +152,16 @@ void battleLoop(enum gameState *state)
                 printf("You win!!!\n");
                 battleResult = WIN;
             } 
+            
             // TODO: Here should be a resulting window of event that triggered this fight
 
-            // Testing purposes:
-            switch (battleResult)
+            if (battleResult == -10)
             {
-                case WIN:
-                    DrawText("CONGRATULATIONS!!!!", 100, 100, 100, GOLD);
-                    break;
-                case LOSS:
-                    DrawText("We'll get 'em next time, boiz", 100, 100, 100, DARKPURPLE);
-                    break;
-                case DRAW:
-                    DrawText("Well, it seems we both lost today", 100, 100, 100, GREEN);
-                    break;
-                default:
-                    printf("not over yet\n");
-                    arrangePlayerCardsOnField(&playerCardSet);
-                    arrangeEnemyCardsOnField(&enemyCardSet);
-                    break;
+                arrangePlayerCardsOnField(&playerCardSet);
+                arrangeEnemyCardsOnField(&enemyCardSet);
             }
+            else
+                endingScreen(readyButton, battleResult);
         }
 
         EndDrawing();
@@ -206,6 +194,43 @@ void battleLoop(enum gameState *state)
 
     *state = MAP;
     resetRound();
+}
+
+void endingScreen(Vector2 continueButton, int battleResult)
+{
+    EndDrawing(); // I hate this too...
+    int exitClicked = FALSE;
+
+    while (!exitClicked)
+    {
+        BeginDrawing();
+        ClearBackground(WHITE);
+        switch (battleResult)
+        {
+            case WIN:
+                DrawText("CONGRATULATIONS!!!!", 100, 100, 100, GOLD);
+                break;
+            case LOSS:
+                DrawText("We'll get 'em next time, boiz", 100, 100, 100, DARKPURPLE);
+                break;
+            case DRAW:
+                DrawText("Well, it seems we both lost today", 100, 100, 100, GREEN);
+                break;
+            default:
+                printf("not over yet\n");
+                break;
+        }
+
+        DrawRectangle(continueButton.x, continueButton.y, BUTTON_SIZE_WIDTH, BUTTON_SIZE_HEIGHT, GREEN);
+        DrawText("CONTINUE", continueButton.x + 5, continueButton.y + BUTTON_SIZE_HEIGHT / 2 - 15, 20, BLACK);
+
+        EndDrawing();
+
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            exitClicked = detectButtonClick(continueButton);
+    }
+
+    BeginDrawing();
 }
 
 // Testing purposes only
@@ -276,7 +301,6 @@ void drawEnemyCards(cardList **enemyCardSet, Texture2D hiddenEnemie)
             DrawTexture(hiddenEnemie, currCard->card.posX, currCard->card.posY, WHITE);
             //drawCard(&currCard->card);
 
-
         currCard = currCard->nextCard;
     }
 }
@@ -327,7 +351,7 @@ void drawCard(struct card *currCard)
     DrawText(currCard->name, currCard->posX + PLAYER_CARD_SIZE_X / 2 - strlen(currCard->name) * 3,
                 currCard->posY + PLAYER_CARD_SIZE_Y - 15, 10, BLACK);
 
-    DrawText(getIntToString(currCard->curHp, hpString), currCard->posX + PLAYER_CARD_SIZE_X - 25,
+    DrawText(getIntToString(currCard->curHp, hpString), currCard->posX + PLAYER_CARD_SIZE_X - 30,
             currCard->posY + 5, 10, hpColor);
 
     DrawText(" / ", currCard->posX + PLAYER_CARD_SIZE_X - 22, currCard->posY + 5, 10, BLACK);
@@ -395,11 +419,16 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
     printf("Battle started\n");
     int animPlayed = FALSE;
     int isFight = TRUE;
+    int showResults = FALSE;
     Texture2D EnemyReveal = LoadTexture("../Textures/Unknown_enemy_reveal.png");
     
     Vector2 animPos;
     animPos.x = enemyCard->posX;
     animPos.y = enemyCard->posY;
+
+    Vector2 continueButton;
+    continueButton.x = PLAYER_FIGHTER_CENTERED_X - BUTTON_SIZE_WIDTH / 4;
+    continueButton.y = PLAYER_FIGHTER_CENTERED_Y + BUTTON_SIZE_WIDTH * 2 - 60;   
 
     Rectangle frameRec = { 0.0f, 0.0f, (float)EnemyReveal.width / 11, (float)EnemyReveal.height };
     int currentFrame = 0;
@@ -417,7 +446,7 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
             framesCounter = 0;
             currentFrame++;
 
-            if (currentFrame > 10)
+            if (currentFrame > 10 && showResults == FALSE)
             {
                 animPlayed = TRUE;
                 enemyCard->posY += currentFrame;
@@ -502,7 +531,11 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
                             break;
                     }
 
-                    isFight = FALSE;
+                    showResults = TRUE;
+
+                    // In current state cards stay collided after fight, this should fix it
+                    enemyCard->posY -= currentFrame; // But it looks like Kostyli though
+                    playerCard->posY += currentFrame;
                 }
             }
 
@@ -519,7 +552,16 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
             drawCard(enemyCard);
             drawCard(playerCard);
         }
-        
+
+        if (showResults)
+        {
+            DrawRectangle(continueButton.x, continueButton.y, BUTTON_SIZE_WIDTH, BUTTON_SIZE_HEIGHT, DARKGREEN);
+            DrawText("CONTINUE", continueButton.x + 5, continueButton.y + BUTTON_SIZE_HEIGHT / 2 - 15, 20, BLACK);
+
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && detectButtonClick(continueButton))
+                isFight = FALSE;
+        }
+
         EndDrawing();
     }
 

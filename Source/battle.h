@@ -59,6 +59,7 @@ void drawEnemyCards(cardList **enemyCardSet, Texture2D hiddenEnemie);
 void detectCardClick(cardList **playerCardSet);
 void cardWasSelectedPlayer(cardList **playerSelectedCard);
 void enemyPicksCard(cardList **enemyCardSet);
+void endingScreen(Vector2 continueButton, int battleResult);
 void resetRound();
 
 char* getIntToString (int n, char *string);
