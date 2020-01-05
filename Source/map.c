@@ -81,6 +81,7 @@ void mapLoop(enum gameState *state)
         deleteNode(&roads, 0);
     }
     debugInfoText("Exit");
+    UnloadSound(bgMusic);
     CloseAudioDevice();
 }
 

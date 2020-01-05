@@ -201,6 +201,7 @@ void battleLoop(enum gameState *state, PlayerCaravan *player)
     UnloadTexture(enemyCard);
     UnloadTexture(battleBackground);
 
+    UnloadSound(bgMusic);
     CloseAudioDevice();
     *state = MAP;
     resetRound();
