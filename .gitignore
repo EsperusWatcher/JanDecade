@@ -3,4 +3,6 @@ Makefile
 *.o
 *.out
 .vscode
-
+*.log
+Build/
+*.bat
