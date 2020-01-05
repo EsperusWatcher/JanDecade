@@ -2,7 +2,6 @@
 
 void initPlayer(PlayerCaravan *player)
 {
-    initCardSet(&player->deckList);
     player->wagon.goods = createList();
 }
 
