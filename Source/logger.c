@@ -24,6 +24,14 @@ void debugInfoText(char *additionalText)
     fclose(fp);
 }
 
+void debugInfoAdress(void *adress, char *addText)
+{
+    char *filename = "debug.log";
+    FILE *fp = fopen(filename, "a");
+    fprintf(fp, "DEBUG [ADRESS] : %p - %s \n", adress, addText);
+    fclose(fp);
+}
+
 void debugStart()
 {
     char *filename = "debug.log";

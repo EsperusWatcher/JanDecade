@@ -9,6 +9,8 @@ void debugInfoInt(int number, char *additionalText);
 
 void debugInfoText(char *additionalText);
 
+void debugInfoAdress(void *adress, char* addText);
+
 void debugStart();
 
 #endif

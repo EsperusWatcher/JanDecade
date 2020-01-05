@@ -7,7 +7,7 @@ void mapLoop(enum gameState *state)
     Sound bgMusic = LoadSound("../Music/Elevator_music.mp3");
     PlaySound(bgMusic);
 
-    //debugStart();
+    debugStart();
     Map mainmap;
     PlayerState *player = (PlayerState *)malloc(sizeof(PlayerState));
     player->model.x = 0;
@@ -26,29 +26,48 @@ void mapLoop(enum gameState *state)
     List roads, citys;
     roads = loadAllRoads();
 
+    for(int i = 0; i < roads.count; i++)
+    {
+        debugInfoText(((Road*)getNodeByIndex(&roads, i))->name);
+    }
+
+    Node *bufa = roads.Head;
+    for(int i = 0; i < roads.count; i++)
+    {
+        debugInfoAdress(((Road*)bufa), "");
+        bufa = bufa->next;
+    }
+    
     SetShapesTexture(mainmap.bgTexture, mainmap.bg);
     int curRoadIndex = 0;
 
     while (*state == MAP)
     {
-        
+
         if (player->road != NULL)
         {
+            debugInfoText("Here0");
             updateMovement(player);
+            debugInfoText("Here1");
         }
         else
         {
-            startMovement(player, (Road*)getNodeByIndex(&roads, curRoadIndex));
+            debugInfoText("Here2");
+            startMovement(player, (Road *)getNodeByIndex(&roads, curRoadIndex));
             curRoadIndex++;
+            if (curRoadIndex > roads.count)
+            {
+                curRoadIndex = 0;
+            }
+            debugInfoText("Here3");
         }
-        
 
         BeginDrawing();
 
         ClearBackground(PINK);
         DrawRectangleRec(mainmap.bg, WHITE);
         DrawTexture(mainmap.roads, 0, 0, BLACK);
-         DrawRectangleRec(player->model, RED);
+        DrawRectangleRec(player->model, RED);
         DrawText("MAP", 100, 100, 60, WHITE);
 
         EndDrawing();
@@ -69,10 +88,12 @@ void startMovement(PlayerState *plSt, Road *road)
     plSt->road = road;
     plSt->model.x = road->firstPoint.x;
     plSt->model.y = road->firstPoint.y;
+    debugInfoAdress(road, "start Road ");
 }
 
 void updateMovement(PlayerState *plSt)
 {
+    debugInfoAdress(plSt->road, "start Road ");
     if (plSt->road->pointCount == plSt->currentPosInMap)
     {
         plSt->road = NULL;
@@ -203,17 +224,26 @@ List loadAllRoads()
 
     while (!feof(fp))
     {
-        fscanf(fp, "%s %d %d %d %d %d%c%d", roadnamebuf, &x1buf, &y1buf, &x2buf, &y2buf, &width, &buf, &height);
-        road = (Road *)malloc(sizeof(Road));
-        road->firstPoint.x = x1buf;
-        road->firstPoint.y = y1buf;
-        road->secondPoint.x = x2buf;
-        road->secondPoint.y = y2buf;
-        road->pointCount = 0;
-        road->name = (char *)malloc(strlen(roadnamebuf) * sizeof(char));
-        strcpy(road->name, roadnamebuf);
-        processRoad(road, road->name, width, height);
-        pushBackNode(&roads, (void *)road);
+        if (fscanf(fp, "%s %d %d %d %d %d%c%d", roadnamebuf, &x1buf, &y1buf, &x2buf, &y2buf, &width, &buf, &height) == 8)
+        {
+            road = (Road *)malloc(sizeof(Road));
+            debugInfoAdress((void *)road, "road adress");
+            road->firstPoint.x = x1buf;
+            road->firstPoint.y = y1buf;
+            road->secondPoint.x = x2buf;
+            road->secondPoint.y = y2buf;
+            road->pointCount = 0;
+            road->name = (char *)malloc(strlen(roadnamebuf) + 1);
+            strcpy(road->name, roadnamebuf);
+            processRoad(road, road->name, width, height);
+            debugInfoText("\tComplete");
+            debugInfoText(road->name);
+            pushBackNode(&roads, (void *)road);
+        }
+        else
+        {
+            debugInfoText("Cannot read all arguments by roads.data");
+        }
     }
     fclose(fp);
     return roads;
