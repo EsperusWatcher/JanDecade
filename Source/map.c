@@ -12,6 +12,7 @@ void mapLoop(enum gameState *state)
     PlayerState *player = (PlayerState *)malloc(sizeof(PlayerState));
     player->model.x = 0;
     player->model.y = 0;
+    player->road = NULL;
     player->model.width = 50;
     player->model.height = 50;
 
@@ -26,18 +27,11 @@ void mapLoop(enum gameState *state)
     List roads, citys;
     roads = loadAllRoads();
 
-    for(int i = 0; i < roads.count; i++)
+    for (int i = 0; i < roads.count; i++)
     {
-        debugInfoText(((Road*)getNodeByIndex(&roads, i))->name);
+        debugInfoText(((Road *)getNodeByIndex(&roads, i))->name);
     }
 
-    Node *bufa = roads.Head;
-    for(int i = 0; i < roads.count; i++)
-    {
-        debugInfoAdress(((Road*)bufa), "");
-        bufa = bufa->next;
-    }
-    
     SetShapesTexture(mainmap.bgTexture, mainmap.bg);
     int curRoadIndex = 0;
 
@@ -47,6 +41,12 @@ void mapLoop(enum gameState *state)
         if (player->road != NULL)
         {
             debugInfoText("Here0");
+            Node *bufa = roads.Head;
+            for (int i = 0; i < roads.count; i++)
+            {
+                debugInfoAdress(((Road *)bufa), "");
+                bufa = bufa->next;
+            }
             updateMovement(player);
             debugInfoText("Here1");
         }
@@ -93,7 +93,7 @@ void startMovement(PlayerState *plSt, Road *road)
 
 void updateMovement(PlayerState *plSt)
 {
-    debugInfoAdress(plSt->road, "start Road ");
+    debugInfoAdress(plSt->road, "update Road ");
     if (plSt->road->pointCount == plSt->currentPosInMap)
     {
         plSt->road = NULL;
