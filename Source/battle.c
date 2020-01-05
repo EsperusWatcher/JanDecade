@@ -64,6 +64,9 @@ int totalEnemyCards = 0;
 
 void battleLoop(enum gameState *state, PlayerCaravan *player)
 {
+    InitAudioDevice();
+    SetMasterVolume(10);
+    Sound bgMusic = LoadSound("../Music/Frolic.mp3");
     static Texture2D battleBackground;
     battleBackground = LoadTexture("../Textures/Battlefield.png");
     Texture2D enemyCard;
@@ -90,6 +93,7 @@ void battleLoop(enum gameState *state, PlayerCaravan *player)
     while (*state == BATTLE && battleResult == -10)
     {
         BeginDrawing();
+        PlaySound(bgMusic);
 
         DrawTexture(battleBackground, 0, 0, WHITE);
         drawPlayerCards(&playerCardSet);
@@ -197,6 +201,7 @@ void battleLoop(enum gameState *state, PlayerCaravan *player)
     UnloadTexture(enemyCard);
     UnloadTexture(battleBackground);
 
+    CloseAudioDevice();
     *state = MAP;
     resetRound();
 }

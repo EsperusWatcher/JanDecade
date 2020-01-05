@@ -2,6 +2,11 @@
 
 void mapLoop(enum gameState *state)
 {
+    InitAudioDevice();
+    SetMasterVolume(10);
+    Sound bgMusic = LoadSound("../Music/Elevator_music.mp3");
+    PlaySound(bgMusic);
+
     //debugStart();
     Map mainmap;
     PlayerState* player = (PlayerState*)malloc(sizeof(PlayerState));
@@ -43,6 +48,8 @@ void mapLoop(enum gameState *state)
         if (IsKeyPressed(KEY_D))
             *state = BATTLE;
     }
+
+    CloseAudioDevice();
 }
 
 void startMovement(PlayerState *plSt, Road *road)
