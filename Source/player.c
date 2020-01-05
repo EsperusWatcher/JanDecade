@@ -4,7 +4,7 @@ void initPlayer(PlayerCaravan *player)
 {
     initCardSet(&player->deckList);
     player->deckSize = getPlayerCards(&player->deckList);
-    //player->wagon.goods = createList();
+    player->wagon.goods = createList();
 }
 
 int getPlayerCards(cardList **deckList)

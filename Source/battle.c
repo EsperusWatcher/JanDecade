@@ -577,7 +577,6 @@ void startBattle(struct card *playerCard, struct card *enemyCard, Texture2D batt
                 currentFrameDeathAnim++;
                 frameRecDeath.x = (float)currentFrameDeathAnim * (float)deathAnim.width / 4;
             }
-
         }
 
         EndDrawing();
