@@ -28,6 +28,7 @@ int main()
 				break;
 			
 			case BATTLE:
+				initCardSet(&player.deckList);
 				player.deckSize = getPlayerCards(&player.deckList);
 				battleLoop(&gameState, &player);
 				break; 
